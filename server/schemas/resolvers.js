@@ -5,8 +5,10 @@ const { signToken } = require('../utils/auth');
 const resolvers = {
     Query: {
         me: async (parent, args, context) => {
+            console.log(context.user);
           if (context.user) {
-              return User.findOne({ _id: context.user._id });
+              const user = await User.findOne({ _id: context.user._id });
+              return user;
           }
           throw new AuthenticationError('You need to be logged in!');
         },
@@ -35,13 +37,15 @@ const resolvers = {
             const token = signToken(user);
             return { token, user };
         },
-        saveBook: async (parent, { bookData }, context) => {
+        saveBook: async (parent, bookData, context) => {
+            console.log(context);
             if (context.user) {
-              return User.findOneAndUpdate(
+              const updatedUser = await User.findOneAndUpdate(
                   { _id: context.user._id },
                   { $addToSet: { savedBooks: bookData }},
-                  { new: true, runValidators: true },
+                  { new: true },
               );
+              return updatedUser;
             }
             throw new AuthenticationError('You need to be logged in!');
         },
